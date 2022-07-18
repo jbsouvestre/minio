@@ -588,6 +588,7 @@ func (c *cacheObjects) hashIndex(bucket, object string) int {
 // newCache initializes the cacheFSObjects for the "drives" specified in config.json
 // or the global env overrides.
 func newCache(config cache.Config) ([]*diskCache, bool, error) {
+	logger.Info("newCache, config: %+v", config)
 	var caches []*diskCache
 	ctx := logger.SetReqInfo(GlobalContext, &logger.ReqInfo{})
 	formats, migrating, err := loadAndValidateCacheFormat(ctx, config.Drives)
@@ -595,6 +596,9 @@ func newCache(config cache.Config) ([]*diskCache, bool, error) {
 		return nil, false, err
 	}
 	var warningMsg string
+
+	logger.Info("Cache drives: %+v", config.Drives)
+	
 	for i, dir := range config.Drives {
 		// skip diskCache creation for cache drives missing a format.json
 		if formats[i] == nil {

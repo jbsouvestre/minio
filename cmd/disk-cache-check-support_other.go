@@ -28,11 +28,15 @@ import (
 	"time"
 
 	"github.com/djherbis/atime"
+	"github.com/minio/minio/internal/logger"
 )
 
 // Return error if Atime is disabled on the O/S
 func checkAtimeSupport(dir string) (err error) {
+	logger.Info("Checking if atime is supported on ", dir)
+
 	file, err := ioutil.TempFile(dir, "prefix")
+
 	if err != nil {
 		return
 	}
@@ -43,13 +47,17 @@ func checkAtimeSupport(dir string) (err error) {
 		return
 	}
 	// add a sleep to ensure atime change is detected
-	time.Sleep(10 * time.Millisecond)
+	// let's increase the sleep a little bit to ensure we don't miss it
+	time.Sleep(100 * time.Millisecond)
 
 	if _, err = io.Copy(ioutil.Discard, file); err != nil {
 		return
 	}
 
 	finfo2, err := os.Stat(file.Name())
+
+	logger.Info("\tfinfo1 atime: ", atime.Get(finfo1))
+	logger.Info("\tfinfo2 atime: ", atime.Get(finfo2))
 
 	if atime.Get(finfo2).Equal(atime.Get(finfo1)) {
 		return errors.New("Atime not supported")
